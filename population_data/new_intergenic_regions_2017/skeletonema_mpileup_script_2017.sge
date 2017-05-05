@@ -1,0 +1,16 @@
+#$ -cwd
+#$ -q node0
+#$ -pe mpich 16
+#$ -S /bin/bash
+
+echo 'HF03.bam
+HF15.bam
+HF29.bam
+HF45.bam' > list.txt
+
+samtools mpileup -b list.txt -l nc_regions.bed -f ./nc_regions_to_use.fasta > mpileup_intergenic_2017
+java -ea -Xmx7g -jar ~/popoolation2_1201/mpileup2sync.jar --input mpileup_intergenic_2017 --output intergenic_2017.sync --fastq-type sanger --min-qual 10 --threads 16 
+perl ~/popoolation2_1201/snp-frequency-diff.pl --input intergenic_2017.sync --output-prefix intergenic_2017 --min-count 1 --min-coverage 1 --max-coverage 1000
+export PERL5LIB=~/MyPerlLib
+perl ~/popoolation2_1201/fisher-test.pl --input intergenic_2017.sync --output intergenic_2017.fet --min-count 2 --min-coverage 20 --max-coverage 1000 --suppress-noninformative
+perl ~/popoolation2_1201/fst-sliding.pl --input intergenic_2017.sync --output intergenic_2017.fst --suppress-noninformative --min-count 2 --min-coverage 20 --max-coverage 1000 --min-covered-fraction 1 --window-size 1 --step-size 1 --pool-size 18:9:14:17
