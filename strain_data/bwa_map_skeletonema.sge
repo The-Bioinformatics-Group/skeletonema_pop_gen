@@ -1,0 +1,27 @@
+#$ -cwd
+#$ -q high_mem
+#$ -S /bin/bash
+#$ -pe mpich 32
+
+for i in /nobackup/data6/skeletonema_resequencing/data/A.Godhe_15_01/cat_per_strains/MF*/*_1_cleaned.fastq;
+do
+        echo working with "$i"
+        newfile="$(basename $i _1_cleaned.fastq)"
+        bwa mem -t 32 -M nc_regions_to_use.fasta /nobackup/data6/skeletonema_resequencing/data/A.Godhe_15_01/cat_per_strains/MF*/${newfile}_1_cleaned.fastq /nobackup/data6/skeletonema_resequencing/data/A.Godhe_15_01/cat_per_strains/MF*/${newfile}_2_cleaned.fastq > ${newfile}.sam
+        samtools view -bSu ${newfile}.sam -o ${newfile}.bam
+        rm ${newfile}.sam
+        samtools sort ${newfile}.bam ${newfile}_sorted
+        rm ${newfile}.bam
+        samtools index ${newfile}_sorted.bam
+
+        java -Xmx2g -jar ~/scripts/MarkDuplicates.jar \
+        INPUT=${newfile}_sorted.bam \
+        OUTPUT=${newfile}_sorted_RMDUP.bam \
+        METRICS_FILE=${newfile}_picard.log \
+        AS=true \
+        TMP_DIR=./picard_temps \
+        VALIDATION_STRINGENCY=LENIENT
+ 
+        rm ${newfile}_sorted.bam
+
+done;
