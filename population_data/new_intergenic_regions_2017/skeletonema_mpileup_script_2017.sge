@@ -3,10 +3,9 @@
 #$ -pe mpich 16
 #$ -S /bin/bash
 
-echo 'HF03.bam
-HF15.bam
-HF29.bam
-HF45.bam' > list.txt
+echo 'MF02_5.bam
+MF09_5.bam
+MF19_5.bam' > list.txt
 
 samtools mpileup -b list.txt -l nc_regions.bed -f ./nc_regions_to_use.fasta > mpileup_intergenic_2017
 java -ea -Xmx7g -jar ~/popoolation2_1201/mpileup2sync.jar --input mpileup_intergenic_2017 --output intergenic_2017.sync --fastq-type sanger --min-qual 10 --threads 16 
